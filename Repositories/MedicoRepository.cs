@@ -2,6 +2,8 @@
 using Hospital_API.Data;
 using Hospital_API.Dtos;
 using Hospital_API.Models;
+using System.Data;
+using System.Transactions;
 
 namespace Hospital_API.Repositories
 {
@@ -17,7 +19,7 @@ namespace Hospital_API.Repositories
             DAO = context;
         }
 
-        public async Task<List<Medico>> ObtenerTodos()
+        public async Task<List<Medico>> Consultar_Todos()
         {
             using var connection = DAO.GetConnection();
 
@@ -27,13 +29,38 @@ namespace Hospital_API.Repositories
             return res.ToList();
         }
 
-        public async Task<Medico> ObtenerPorId(int id)
+        /// <summary>
+        /// Método que se encarga de consultar un medico por su ID
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
+        internal async Task<ResponseObj?> Consultar_MedicoXId(int id)
         {
             using var connection = DAO.GetConnection();
+            string sql = $"SELECT * FROM tb_cat_medico where id_medico = {id}";
+            var res = await connection.QueryFirstOrDefaultAsync<Medico>(sql);
 
-            string sql = "SELECT * FROM tb_cat_medico WHERE id_medico = @Id";
+            if (res == null)            
+                return new ResponseObj { Exito = false, Mensaje = "No se encontró el médico con el ID proporcionado." };            
+            else            
+                return new ResponseObj { Exito = true, Mensaje = "Médico encontrado.", Data = res };            
+           
+        }
 
-            return await connection.QueryFirstOrDefaultAsync<Medico>(sql, new { Id = id });
+        public async Task<Medico> ObtenerPorId(int id)
+        {
+            //Verificar si hay alguna transaccion en proceso, si es así, usar la misma conexión y transacción para garantizar la atomicidad de las operaciones
+            if (objTransaccion != null)
+            {
+                return await objTransaccion.Conexion.QueryFirstOrDefaultAsync<Medico>("SELECT * FROM tb_cat_medico WHERE id_medico = @Id", new { Id = id }, transaction: objTransaccion.Transaction);
+            }
+            else
+            {
+                using var connection = DAO.GetConnection();
+                string sql = "SELECT * FROM tb_cat_medico WHERE id_medico = @Id";
+
+                return await connection.QueryFirstOrDefaultAsync<Medico>(sql, new { Id = id });
+            }
         }    
 
         /// <summary>
@@ -41,17 +68,21 @@ namespace Hospital_API.Repositories
         /// </summary>
         /// <param name="medicoDto"></param>
         /// <returns></returns>
-        internal async Task<int> InsertarMedico(Medico_CrearDto medicoDto)
+        internal async Task<ResponseObj> InsertarMedico(Medico_CrearDto medicoDto)
         {
             using (var conexion = DAO.GetConnection())
             {
                 string sql = $@"
-       INSERT INTO tb_cat_medico( nombre, ap_paterno, ap_materno, status, id_especialidad) VALUES ('{medicoDto.nombre}', '{medicoDto.ap_paterno}', '{medicoDto.ap_materno}', ''{medicoDto.status}'', {medicoDto.id_especialidad});
+       INSERT INTO tb_cat_medico( nombre, ap_paterno, ap_materno, status, id_especialidad) VALUES ('{medicoDto.nombre}', '{medicoDto.ap_paterno}', '{medicoDto.ap_materno}', '{medicoDto.status}', {medicoDto.id_especialidad});
 
         SELECT CAST(SCOPE_IDENTITY() as int);
         ";
 
-                return await conexion.ExecuteScalarAsync<int>(sql);
+                var id = await conexion.ExecuteScalarAsync<int>(sql);
+                if(id > 0)
+                    return new ResponseObj { Exito = true, Mensaje = "Médico insertado correctamente.", Data = id };
+                else 
+                    return new ResponseObj { Exito = false, Mensaje = "No se pudo insertar el médico." };
             }    
         }
 
@@ -60,7 +91,7 @@ namespace Hospital_API.Repositories
         /// </summary>
         /// <param name="id_medico"></param>
         /// <returns></returns>
-        internal async Task<RespuestaRepository> Eliminar_Medico(int id_medico)
+        internal async Task<ResponseObj> Eliminar_Medico(int id_medico)
         {
             try
             {
@@ -71,18 +102,18 @@ namespace Hospital_API.Repositories
                     var response = await conexion.ExecuteAsync(sql);
                     if (response > 0)
                     {
-                        return new RespuestaRepository { Exito = true, Mensaje = "Médico eliminado correctamente." };
+                        return new ResponseObj { Exito = true, Mensaje = "Médico eliminado correctamente." };
                     }
                     else
                     {
-                        return new RespuestaRepository { Exito = false, Mensaje = "No se pudo eliminar el médico." };
+                        return new ResponseObj { Exito = false, Mensaje = "No se pudo eliminar el médico." };
                     }
                 }
 
             }
             catch (Exception ex)
             {
-                return new RespuestaRepository { Exito = false, Mensaje = "No se pudo eliminar el médico: " + ex.Message };
+                return new ResponseObj { Exito = false, Mensaje = "No se pudo eliminar el médico: " + ex.Message };
             }
         }
 
@@ -92,7 +123,7 @@ namespace Hospital_API.Repositories
         /// </summary>
         /// <param name="medicoDto"></param>
         /// <returns></returns>
-        internal async Task<RespuestaRepository?> ActualizarMedico(Medico_ActualizarDto medicoDto)
+        internal async Task<ResponseObj?> ActualizarMedico(Medico_ActualizarDto medicoDto)
         {
             string query = $@" UPDATE tb_cat_medico
                         SET nombre = '{medicoDto.nombre}',
@@ -107,17 +138,64 @@ namespace Hospital_API.Repositories
                 var resultado = await conexion.ExecuteAsync(query);
                 if (resultado > 0)
                 {
-                    return new RespuestaRepository { Exito = true, Mensaje = "Médico actualizado correctamente." };
+                    return new ResponseObj { Exito = true, Mensaje = "Médico actualizado correctamente." };
                 }
                 else
                 {
-                    return new RespuestaRepository { Exito = false, Mensaje = "No se pudo actualizar el médico." };
+                    return new ResponseObj { Exito = false, Mensaje = "No se pudo actualizar el médico." };
                 }
             }
             catch (Exception ex)
             {
-                return new RespuestaRepository { Exito = false, Mensaje = "Error al actualizar el médico: " + ex.Message };
+                return new ResponseObj { Exito = false, Mensaje = "Error al actualizar el médico: " + ex.Message };
             }
         }
+
+
+        #region TRANSACCIONES
+        //Se obtiene la transacción y la conexión de la base de datos para realizar operaciones atómicas, es decir, que si una operación falla, se puedan revertir todas las operaciones
+
+        TransaccionWrapper objTransaccion = null;
+        internal async Task CrearTransaccion()
+        {
+            objTransaccion = await DAO.IniciarTransaccion();
+        }
+
+        internal async Task CommitTransaccion()
+        {
+            if (objTransaccion != null)
+            {
+                objTransaccion.Transaction.Commit();
+                objTransaccion.Conexion.Close();
+            }
+        }
+
+        internal async Task RollbackTransaccion()
+        {
+            if (objTransaccion != null)
+            {
+                objTransaccion.Transaction.Rollback();
+                objTransaccion.Conexion.Close();
+            }
+        }
+        #endregion
+
+        internal async Task Eliminar_Horarios_Medico(int id_medico)
+        {
+           string query = $"DELETE FROM tb_horario_medico WHERE id_medico = {id_medico}";
+            await objTransaccion.Conexion.ExecuteAsync(query, transaction: objTransaccion.Transaction);
+        }
+
+
+        internal async Task Insertar_Horarios_Medico(int id_medico, Medico_HorariosDto horario)
+        {
+            //El formato de la hora debe ser 'HH:mm:ss' para que se inserte correctamente en la base de datos, si no se hace así, se insertará la hora con el formato 'yyyy-MM-dd HH:mm:ss' y no se podrá consultar correctamente, es una columna de tipo Time
+            string hora_inicio = horario.Hora_Inicio.ToString("HH:mm:ss");
+            string hora_fin = horario.Hora_Fin.ToString("HH:mm:ss");
+            string query = $"INSERT INTO tb_horario_medico(id_medico, num_dia, hora_inicio, hora_fin) VALUES ({id_medico}, {horario.Num_Dia}, '{hora_inicio}', '{hora_fin}')";
+            await objTransaccion.Conexion.ExecuteAsync(query, transaction: objTransaccion.Transaction);
+        }
+
+      
     }
 }

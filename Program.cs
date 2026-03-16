@@ -10,6 +10,8 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddScoped<AppDbContext>();
 builder.Services.AddScoped<MedicoRepository>();
 builder.Services.AddScoped<MedicoService>();
+builder.Services.AddScoped<PacienteRepository>();
+builder.Services.AddScoped<PacienteService>();
 builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();

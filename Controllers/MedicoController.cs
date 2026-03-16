@@ -19,13 +19,28 @@ namespace Hospital_API.Controllers
         [HttpGet]
         public async Task<IActionResult> Get()
         {
-            return Ok(await _service.ObtenerPacientes());
+            return Ok(await _service.Consultar_Medicos());
+        }
+
+        [HttpGet("{id}")]
+        public async Task<IActionResult> Get(int id)
+        {
+            var response = await _service.Consultar_MedicoXId(id);
+
+            if(response.Exito)
+                return Ok(response.Data);
+            else 
+                return BadRequest("No se encontró el medico solicitado");
         }
 
         [HttpPost("Insertar")]
         public async Task<IActionResult> InsertarMedico([FromBody] Medico_CrearDto medicoDto)
         {
-            return Ok(await _service.CrearMedico(medicoDto));
+            var response = await _service.CrearMedico(medicoDto);
+            if(!response.Exito)
+                return BadRequest(response);
+            else
+                return Ok(response.Data);
         }
 
         [HttpDelete("{id_medico}")]
@@ -37,9 +52,6 @@ namespace Hospital_API.Controllers
                 return BadRequest(response);
             else
                 return Ok();
-
-
-          
         }
 
 
@@ -47,6 +59,16 @@ namespace Hospital_API.Controllers
         public async Task<IActionResult> ActualizarMedico([FromBody] Medico_ActualizarDto medicoDto)
         {
             var response = await _service.ActualizarMedico(medicoDto);
+            if (!response.Exito)
+                return BadRequest(response);
+            else
+                return Ok();
+        }
+
+        [HttpPost("AsignarHorario/{id_medico}")]
+        public async Task<IActionResult> AsignarHorario(int id_medico, [FromBody] List<Medico_HorariosDto> horarioDto)
+        {
+            var response = await _service.AsignarHorario(id_medico, horarioDto);
             if (!response.Exito)
                 return BadRequest(response);
             else
