@@ -5,6 +5,8 @@ VisualStudioVersion = 17.14.36915.13
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Hospital_API", "Hospital_API.csproj", "{EB45D257-19D1-439C-90A0-F5BD2B5EECCE}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Test_ApiHospital", "..\Test_ApiHospital\Test_ApiHospital.csproj", "{B30BFE5C-A40C-4C04-B842-28BDC6BB6A94}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -15,6 +17,10 @@ Global
 		{EB45D257-19D1-439C-90A0-F5BD2B5EECCE}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{EB45D257-19D1-439C-90A0-F5BD2B5EECCE}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{EB45D257-19D1-439C-90A0-F5BD2B5EECCE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B30BFE5C-A40C-4C04-B842-28BDC6BB6A94}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B30BFE5C-A40C-4C04-B842-28BDC6BB6A94}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B30BFE5C-A40C-4C04-B842-28BDC6BB6A94}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B30BFE5C-A40C-4C04-B842-28BDC6BB6A94}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

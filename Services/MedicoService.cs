@@ -27,7 +27,7 @@ namespace Hospital_API.Services
         /// </summary>
         /// <param name="medicoDto"></param>
         /// <returns></returns>
-        internal async Task<ResponseObj> CrearMedico(Medico_CrearDto medicoDto)
+        public async Task<ResponseObj> CrearMedico(Medico_CrearDto medicoDto)
         {
             var response = await _repo.InsertarMedico(medicoDto);
             if(response == null)
@@ -70,7 +70,7 @@ namespace Hospital_API.Services
         /// </summary>
         /// <param name="medicoDto"></param>
         /// <returns></returns>
-        internal async Task<ResponseObj?> ActualizarMedico(Medico_ActualizarDto medicoDto)
+        public async Task<ResponseObj?> ActualizarMedico(Medico_ActualizarDto medicoDto)
         {
             //1.- Verificar si existe el registro médico antes de eliminar
             var medicoExistente = await _repo.ObtenerPorId(medicoDto.id_medico);
@@ -112,7 +112,7 @@ namespace Hospital_API.Services
         /// <param name="id_medico"></param>
         /// <param name="horarioDto"></param>
         /// <returns></returns>
-        internal async Task<ResponseObj?> AsignarHorario(int id_medico, List<Medico_HorariosDto> horarioDto)
+        public async Task<ResponseObj?> AsignarHorario(int id_medico, List<Medico_HorariosDto> horarioDto)
         {
             //0.- Validar el formato de los horarios recibidos, para evitar que se inserten horarios con formato incorrecto en la base de datos, se puede validar que el formato de fecha y hora sea correcto antes de proceder con la eliminación e inserción de los horarios.
             foreach (var horario in horarioDto)

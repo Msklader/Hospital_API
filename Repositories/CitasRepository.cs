@@ -214,7 +214,7 @@ order by fecha_cita";
         /// </summary>
         /// <param name="id_paciente"></param>
         /// <returns></returns>
-        internal async Task<bool> Verificar_Cancelaciones_Paciente(int id_paciente)
+        public async Task<bool> Verificar_Cancelaciones_Paciente(int id_paciente)
         {
             string query = $@"SELECT isnull(COUNT(*), 0) 
                                 FROM tb_citas_paciente 

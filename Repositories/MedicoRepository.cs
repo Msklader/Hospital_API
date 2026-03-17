@@ -68,7 +68,7 @@ namespace Hospital_API.Repositories
         /// </summary>
         /// <param name="medicoDto"></param>
         /// <returns></returns>
-        internal async Task<ResponseObj> InsertarMedico(Medico_CrearDto medicoDto)
+        public async Task<ResponseObj> InsertarMedico(Medico_CrearDto medicoDto)
         {
             using (var conexion = DAO.GetConnection())
             {
