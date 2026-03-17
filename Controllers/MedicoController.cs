@@ -37,6 +37,15 @@ namespace Hospital_API.Controllers
                 return BadRequest("No se encontró el medico solicitado");
         }
 
+        [HttpGet("Especialidad")]
+        public async Task<IActionResult> GetEspecialidades()
+        {
+            var response = await _service.Consultar_Especialidades();
+            if(response == null)
+                return NotFound("No se encontraron especialidades en la base de datos.");
+            return Ok(response);
+        }
+
         [HttpPost("Insertar")]
         public async Task<IActionResult> InsertarMedico([FromBody] Medico_CrearDto medicoDto)
         {

@@ -172,7 +172,13 @@ namespace Hospital_API.Services
                 }
             }
         }
-
-      
+        /// <summary>
+        /// Método que se encarga de consultar las especialidades
+        /// </summary>
+        /// <returns></returns>
+        internal async Task<ResponseObj?> Consultar_Especialidades()
+        {
+           return await _repo.Consultar_Especialidades();
+        }
     }
 }

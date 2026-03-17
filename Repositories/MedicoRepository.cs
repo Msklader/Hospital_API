@@ -196,6 +196,26 @@ namespace Hospital_API.Repositories
             await objTransaccion.Conexion.ExecuteAsync(query, transaction: objTransaccion.Transaction);
         }
 
-      
+        internal async Task<ResponseObj?> Consultar_Especialidades()
+        {
+            string query = "SELECT id_especialidad, descripcion especialidad FROM tb_cat_especialidades";
+            try
+            {
+                using var conexion = DAO.GetConnection();
+                var resultado = await conexion.QueryAsync<EspecialidadDto>(query);
+                if (resultado != null)
+                {
+                    return new ResponseObj { Exito = true, Mensaje = "Especialidades consultadas correctamente.", Data = resultado.ToList() };
+                }
+                else
+                {
+                    return new ResponseObj { Exito = false, Mensaje = "No se pudieron consultar las especialidades." };
+                }
+            }
+            catch (Exception ex)
+            {
+                return new ResponseObj { Exito = false, Mensaje = "Error al consultar las especialidades: " + ex.Message };
+            }
+        }
     }
 }
