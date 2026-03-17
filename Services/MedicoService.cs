@@ -1,6 +1,7 @@
 ﻿using Hospital_API.Dtos;
 using Hospital_API.Models;
 using Hospital_API.Repositories;
+using System.Globalization;
 
 namespace Hospital_API.Services
 {
@@ -28,7 +29,40 @@ namespace Hospital_API.Services
         /// <returns></returns>
         internal async Task<ResponseObj> CrearMedico(Medico_CrearDto medicoDto)
         {
-            return await _repo.InsertarMedico(medicoDto);
+            var response = await _repo.InsertarMedico(medicoDto);
+            if(response == null)
+            {
+                return new ResponseObj
+                {
+                    Exito = false,
+                    Mensaje = "Ocurrió un error al crear el médico."
+                };
+            }
+            else if (response.Exito)
+            {
+                Medico_Insert_Response obj = new Medico_Insert_Response
+                {
+                    id_medico = (int)response.Data,
+                    nombre = medicoDto.nombre,
+                    ap_paterno = medicoDto.ap_paterno
+                };
+
+                return new ResponseObj
+                {
+                    Exito = true,
+                    Mensaje = "El médico se ha creado correctamente.",
+                    Data = obj
+                };
+            }
+            else 
+            {
+                return new ResponseObj
+                {
+                    Exito = false,
+                    Mensaje = response.Mensaje
+                };
+            }
+
         }
 
         /// <summary>
@@ -80,6 +114,20 @@ namespace Hospital_API.Services
         /// <returns></returns>
         internal async Task<ResponseObj?> AsignarHorario(int id_medico, List<Medico_HorariosDto> horarioDto)
         {
+            //0.- Validar el formato de los horarios recibidos, para evitar que se inserten horarios con formato incorrecto en la base de datos, se puede validar que el formato de fecha y hora sea correcto antes de proceder con la eliminación e inserción de los horarios.
+            foreach (var horario in horarioDto)
+            {
+                if (!DateTime.TryParseExact(horario.Hora_Inicio, "HH:mm", CultureInfo.InvariantCulture, DateTimeStyles.None, out _)
+                    || !DateTime.TryParseExact(horario.Hora_Fin, "HH:mm", CultureInfo.InvariantCulture, DateTimeStyles.None, out _))
+                {                  
+                    return new ResponseObj
+                    {
+                        Exito = false,
+                        Mensaje = "El formato de los horarios es incorrecto. El horario debe tener el formato HH:mm"
+                    };
+                }
+            }   
+
             //Crear una transacción, ya que se van a eliminar los horarios anteriores y se van a insertar los nuevos horarios, si ocurre un error en el proceso, se debe hacer un rollback de la transacción para evitar que queden datos inconsistentes en la base de datos.
             await _repo.CrearTransaccion();
             {

@@ -25,10 +25,14 @@ namespace Hospital_API.Controllers
         {
             var response = await _service.Consultar_PacienteXId(id);
 
-            if (response.Exito)
-                return Ok(response.Data);
+            if(response == null)
+                return NotFound("No se encontró al paciente solicitado");
+            else if (response.Exito == false)
+                return NotFound(response);
+            else if (response.Exito)
+                return Ok(response);
             else
-                return BadRequest("No se encontró al paciente solicitado");
+                return BadRequest(response);
         }
 
         [HttpPost("Insertar")]
@@ -38,7 +42,7 @@ namespace Hospital_API.Controllers
             if (!response.Exito)
                 return BadRequest(response);
             else
-                return Ok(response.Data);
+                return Ok(response);
         }
 
         [HttpDelete("{id_paciente}")]

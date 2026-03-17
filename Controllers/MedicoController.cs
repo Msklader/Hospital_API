@@ -27,9 +27,13 @@ namespace Hospital_API.Controllers
         {
             var response = await _service.Consultar_MedicoXId(id);
 
-            if(response.Exito)
-                return Ok(response.Data);
-            else 
+            if(response == null)
+                return NotFound("No se encontró el medico solicitado");
+            else if (!response.Exito)
+                return NotFound(response);
+            else if (response.Exito)
+                return Ok(response);
+            else
                 return BadRequest("No se encontró el medico solicitado");
         }
 

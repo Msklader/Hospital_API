@@ -190,9 +190,9 @@ namespace Hospital_API.Repositories
         internal async Task Insertar_Horarios_Medico(int id_medico, Medico_HorariosDto horario)
         {
             //El formato de la hora debe ser 'HH:mm:ss' para que se inserte correctamente en la base de datos, si no se hace así, se insertará la hora con el formato 'yyyy-MM-dd HH:mm:ss' y no se podrá consultar correctamente, es una columna de tipo Time
-            string hora_inicio = horario.Hora_Inicio.ToString("HH:mm:ss");
-            string hora_fin = horario.Hora_Fin.ToString("HH:mm:ss");
-            string query = $"INSERT INTO tb_horario_medico(id_medico, num_dia, hora_inicio, hora_fin) VALUES ({id_medico}, {horario.Num_Dia}, '{hora_inicio}', '{hora_fin}')";
+           // string hora_inicio = horario.Hora_Inicio.ToString("HH:mm:ss");
+           // string hora_fin = horario.Hora_Fin.ToString("HH:mm:ss");
+            string query = $"INSERT INTO tb_horario_medico(id_medico, num_dia, hora_inicio, hora_fin) VALUES ({id_medico}, {horario.Num_Dia}, '{horario.Hora_Inicio}', '{horario.Hora_Fin}')";
             await objTransaccion.Conexion.ExecuteAsync(query, transaction: objTransaccion.Transaction);
         }
 
