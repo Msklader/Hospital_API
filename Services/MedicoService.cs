@@ -14,7 +14,7 @@ namespace Hospital_API.Services
             _repo = repo;
         }
 
-        public async Task<List<Medico>> Consultar_Medicos()
+        public async Task<ResponseObj?> Consultar_Medicos()
         {
             return await _repo.Consultar_Todos();
         }

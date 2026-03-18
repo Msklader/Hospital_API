@@ -19,14 +19,22 @@ namespace Hospital_API.Repositories
             DAO = context;
         }
 
-        public async Task<List<Medico>> Consultar_Todos()
+        public async Task<ResponseObj> Consultar_Todos()
         {
             using var connection = DAO.GetConnection();
 
             string sql = "SELECT * FROM tb_cat_medico";
 
             var res = await connection.QueryAsync<Medico>(sql);
-            return res.ToList();
+
+            return new ResponseObj()
+            {
+                Exito = true,
+                Mensaje = "Registros medicos consultados",
+                Data = res.ToList()
+            };
+
+     
         }
 
         /// <summary>
