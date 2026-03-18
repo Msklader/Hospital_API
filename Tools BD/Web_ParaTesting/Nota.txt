@@ -1,0 +1,2 @@
+Proyecto Web Net core para consumir la API
+Solo está funcional la parte de Médico ya que no me dio tiempo de finalizar este proyecto.
